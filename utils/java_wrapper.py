@@ -22,15 +22,24 @@ class JarWrapper(TemporaryDirectory):
         
         self.bonus_protos = OrderedDict()
         
+        print("dex2jar is at " + dex2jar)
+        print("Temporary directory is " + self.name)
         self.handle_file(fname)
 
     def handle_file(self, fname):
+
         with open(fname, 'rb') as fd:
             if fd.read(4) == b'dex\n':
                 new_jar = self.name + '/classes-dex2jar.jar'
-                run([dex2jar, fname, '-f', '-o', new_jar], cwd=self.name, stderr=DEVNULL)
+                r = run([dex2jar, fname, '-f', '-o', new_jar], cwd=self.name, capture_output=True)
+
+                if r.returncode != 0:
+                    stderr = r.stderr.decode()
+                    print("dex2jar failed: ", stderr)
+                    return
                 fname = new_jar
-    
+   
+        print("Extracting zip file " + fname)
         with ZipFile(fname) as jar:
             jar.extractall(self.name)
             

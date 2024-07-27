@@ -3,6 +3,7 @@
 from google.protobuf.descriptor_pb2 import DescriptorProto, FieldDescriptorProto
 from collections import OrderedDict
 from itertools import groupby
+from google.protobuf.internal.containers import RepeatedScalarFieldContainer
 
 """
     This script converts back a FileDescriptor structure to a readable .proto file.
@@ -110,16 +111,20 @@ def parse_msg(desc, scopes, syntax):
     out = wrap_block('message' * is_msg, out, desc)
     return out
 
+
 def fmt_value(val, options=None, desc=None, optarr=[]):
     if type(val) != str:
         if type(val) == bool:
             val = str(val).lower()
-        elif desc and desc.enum_type:
-            val = desc.enum_type.values_by_number[val].name
+        elif desc and desc.type == FieldDescriptorProto.TYPE_ENUM:
+            if isinstance(val, (list, RepeatedScalarFieldContainer)):
+                val = ', '.join(desc.enum_type.values_by_number[v].name for v in val)
+            else:
+                val = desc.enum_type.values_by_number[val].name
         val = str(val)
     else:
         val = '"%s"' % val.encode('unicode_escape').decode('utf8')
-    
+
     if options:
         opts = [*optarr]
         for (option, value) in options.ListFields():

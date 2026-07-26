@@ -222,7 +222,7 @@ def extractor_save(base_path, folder, outputs):
                 path = base_path / name
             
             makedirs(str(path.parent), exist_ok=True)
-            with open(str(path), 'w') as fd:
+            with open(str(path), 'w', encoding='utf-8') as fd:
                 fd.write(contents)
             
             if name not in name_to_path:
